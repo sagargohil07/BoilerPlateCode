@@ -1,0 +1,42 @@
+class RegisterViewModel : BaseViewModel() {
+
+    val firstNameField : InputField<String> = InputField(initialValue = "" ){
+        return@InputField it!!.length >=2
+    }
+
+    val lastNameField : InputField<String> = InputField(initialValue = "" ){
+        return@InputField it!!.length >=2
+    }
+
+    val emailField : InputField<String> = InputField(initialValue = "" ){
+        return@InputField Validator.isValidEmail(it)
+    }
+
+    val passwordField : InputField<String>  = InputField(initialValue = ""){
+        return@InputField it!!.length >= 8 && it.length <= 20
+    }
+
+    val confirmPasswordField : InputField<String> = InputField(initialValue = ""){
+        return@InputField it.equals(passwordField.flow.value)
+    }
+
+    val isValid: StateFlow<Boolean>
+    get() = combine(
+        listOf(
+            firstNameField.flow,
+            lastNameField.flow,
+            emailField.flow,
+            passwordField.flow,
+            confirmPasswordField.flow
+        )
+    ){
+        return@combine firstNameField.isValid() && lastNameField.isValid() && emailField.isValid() && passwordField.isValid() && confirmPasswordField.isValid()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+
+     fun isOnlyString(string: String): Boolean{
+        val pattern = "^[A-Za-z]*$".toRegex()
+        return pattern.matches(string)
+    }
+
+}
