@@ -1,0 +1,12 @@
+    private fun loadJSONFromResource(mContext: Context): String {
+        var json: String? = null
+        try {
+            val inputStream = mContext.resources.openRawResource(R.raw.country)
+            json = inputStream.bufferedReader().readText()
+        } catch (ex: IOException) {
+            ex.printStackTrace()
+            return ""
+        }
+
+        return json
+    }
