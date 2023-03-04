@@ -1,0 +1,66 @@
+#Selector_for_text_color
+- textcolor when text is selected and unselected / active deactive
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="false"  android:color="@color/black"/>
+    <item android:state_selected="true"  android:color="@color/primary"  />
+</selector>
+
+======================================================
+
+#Selector_for_drawble #active #deactive state
+- single drawble selector 
+
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_checked="true">
+        <shape android:shape="oval">
+            <size android:width="@dimen/dimen_20" android:height="@dimen/dimen_20" />
+            <solid android:color="@color/white" />
+            <stroke android:color="@color/primary" android:width="@dimen/dimen_3"/>
+
+        </shape>
+    </item>
+
+    <item android:state_checked="false">
+        <shape android:shape="oval">
+            <size android:width="@dimen/dimen_20" android:height="@dimen/dimen_20" />
+            <solid android:color="@color/white" />
+            <stroke android:color="#cdcdcd" android:width="@dimen/dimen_3"/>
+        </shape>
+
+    </item>
+
+</selector>
+
+======================================================
+
+#Selector_for_drawble #active #diactive state
+- doublw drawble selector
+
+
+======================================================
+
+#Selector_Button_Active_Deactive
+- button color set according is active or deactive state
+
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:alpha="120" android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#80FE4E4E"/>
+            <corners android:radius="@dimen/dimen_12"/>
+            
+        </shape>
+    </item>
+
+    <item >
+        <shape android:shape="rectangle">
+            <solid android:color="@color/primary"/>
+            <corners android:radius="@dimen/dimen_12"/>
+        </shape>
+    </item>
+
+</selector>
