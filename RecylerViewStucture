@@ -48,6 +48,35 @@ class MoviesAdapter(
 }
 
 ==========================================================
+#search from edittext function
+
+ private fun searchList(text: String) {
+        val filterList = ArrayList<ItemModel>()
+        Log.d("check", "searchList: text $text")
+
+        for (i in 0 until ItemList.size) {
+            Log.d("check", "searchList: ${productList[i].productName}")
+            if (ItemList[i].productName.contains(text) or
+                ItemList[i].productDescription.contains(text) or
+                ItemList[i].productStorage.toString().contains(text) or
+                ItemList[i].productRam.toString().contains(text)
+            ) {
+                filterList.add(
+                    ItemModel(
+                        ItemList[i].productId,
+                        ItemList[i].productName,
+                        ItemList[i].productDescription,
+                        ItemList[i].productStorage,
+                        ItemList[i].productRam,
+                    )
+                )
+            }
+        }
+
+        ItemAdapter.filterData(filterList)
+    }
+
+==========================================================
 
 class InputField<T>(
     private val initialValue: T? = null,
@@ -73,4 +102,6 @@ class InputField<T>(
         flow.value = initialValue
     }
 }
+
+
 
