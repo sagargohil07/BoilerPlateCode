@@ -30,6 +30,15 @@ class MoviesAdapter(
             onPlayListener.onPlayListener(itemModel.videoPath)
         }
     }
+    
+    //fillter and search data
+    fun filterData(itemList: ArrayList<ItemModel>){
+        itemList.forEach {
+            Log.d("filter", "searchList: ${itemList[0].itemName}")
+        }
+        this.itemList = itemList
+        notifyDataSetChanged()
+    }
 
 
     override fun getItemCount(): Int {
