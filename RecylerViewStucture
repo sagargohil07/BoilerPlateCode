@@ -40,6 +40,19 @@ class MoviesAdapter(
         notifyDataSetChanged()
     }
 
+    // Add Item in Recyclerview
+     fun addItem() {
+        fruitList.add(randomItem())
+        notifyItemInserted(fruitList.size)
+     }
+
+
+    // Delete Item From Recyclerview
+    fun deleteItem(position: Int) {
+        fruitList.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position,fruitList.size)
+    }
 
     override fun getItemCount(): Int {
         return moviesList.size
