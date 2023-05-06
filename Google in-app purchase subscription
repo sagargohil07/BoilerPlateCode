@@ -1,0 +1,258 @@
+
+    private var billingClient: BillingClient? = null
+    private var response: String? = null
+    private var des: String? = null
+    private var sku: String? = null
+    private var isSuccess: Boolean? = false
+    private val productList = ArrayList<SubscriptionPlansModel>()
+    private val prefs: PreferenceStorage by inject()
+
+    companion object {
+        const val LICENSE_KEY = "Play_store_licence_key"    
+        const val PLAN_1_WEEK = "1_week_ad_free"
+        const val PLAN_1_MONTH = "1_month_ad_free"
+        const val PLAN_3_MONTH = "3_month_ad_free"
+        const val PLAN_6_MONTH = "6_month_ad_free"
+        const val PLAN_1_YEAR = "12_month_ad_free"
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        init()
+    }
+
+    private fun init() {
+        setupBilling()
+        initListener()
+
+        val productSelectedListener = object : SubscriptionPlansAdapter.OnPlanSelected {
+            override fun onPlanSelected(productId: String) {
+                makePurchase(productId)
+            }
+        }
+
+        binding.rvSubscriptionPlan.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = SubscriptionPlansAdapter(productList, productSelectedListener)
+        }
+
+    }
+
+    private fun setupBilling() {
+        billingClient = BillingClient.newBuilder(requireContext())
+            .setListener(purchasesUpdatedListener)
+            .enablePendingPurchases()
+            .build()
+
+
+        /*productList.add(getPrice("1_week_ad_free"))
+        productList.add(getPrice("1_month_ad_free"))
+        productList.add(getPrice("3_month_ad_free"))
+        productList.add(getPrice("6_month_ad_free"))
+        productList.add(getPrice("12_month_ad_free"))*/
+        productList.add(
+            SubscriptionPlansModel(
+                PLAN_1_WEEK,
+                getString(R.string.LBL_1_WEEK),
+                getString(R.string.LBL_0_99_ADS_FREE)
+            )
+        )
+        productList.add(
+            SubscriptionPlansModel(
+                PLAN_1_MONTH,
+                getString(R.string.LBL_1_MONTH),
+                getString(R.string.LBL_3_99_ADS_FREE)
+            )
+        )
+        productList.add(
+            SubscriptionPlansModel(
+                PLAN_3_MONTH,
+                getString(R.string.LBL_3_MONTH),
+                getString(R.string.LBL_9_99_ADS_FREE)
+            )
+        )
+        productList.add(
+            SubscriptionPlansModel(
+                PLAN_6_MONTH,
+                getString(R.string.LBL_6_MONTH),
+                getString(R.string.LBL_19_99_ADS_FREE)
+            )
+        )
+        productList.add(
+            SubscriptionPlansModel(
+                PLAN_1_YEAR,
+                getString(R.string.LBL_1_YEAR),
+                getString(R.string.LBL_49_99_ADS_FREE)
+            )
+        )
+
+    }
+
+    private fun initListener() {
+
+    }
+
+    private fun makePurchase(productId: String) {
+        billingClient!!.startConnection(object : BillingClientStateListener {
+            override fun onBillingServiceDisconnected() {
+
+            }
+
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                val productList = listOf(
+                    QueryProductDetailsParams.Product.newBuilder().setProductId(productId)
+                        .setProductType(BillingClient.ProductType.SUBS)
+                        .build()
+                )
+
+                val params = QueryProductDetailsParams.newBuilder().setProductList(productList)
+                billingClient!!.queryProductDetailsAsync(params.build()) { billingResult, productDetailsList ->
+
+                    for (productDetails in productDetailsList) {
+                        val offerToken = productDetails.subscriptionOfferDetails?.get(0)
+                            ?.offerToken
+                        val productDetailsParamsList =
+                            listOf(offerToken?.let {
+                                BillingFlowParams.ProductDetailsParams.newBuilder()
+                                    .setProductDetails(productDetails)
+                                    .setOfferToken(it)
+                                    .build()
+                            })
+                        val billingFlowParams = BillingFlowParams.newBuilder()
+                            .setProductDetailsParamsList(productDetailsParamsList)
+                            .build()
+                        val billingResult =
+                            billingClient!!.launchBillingFlow(requireActivity(), billingFlowParams)
+
+                    }
+
+                }
+            }
+        })
+    }
+
+    //this will get local currency price
+    /*private fun getPrice(productId: String): SubscriptionPlansModel {
+        billingClient!!.startConnection(object : BillingClientStateListener {
+            override fun onBillingServiceDisconnected() {
+
+            }
+
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                val executorService = Executors.newSingleThreadExecutor()
+                executorService.execute {
+                    val productList =
+                        listOf(
+                            QueryProductDetailsParams.Product.newBuilder()
+                                .setProductId(productId)
+                                .setProductType(BillingClient.ProductType.SUBS)
+                                .build()
+                        )
+
+                    val params = QueryProductDetailsParams.newBuilder().setProductList(productList)
+                    billingClient!!.queryProductDetailsAsync(params.build()) { billingResult, productDetailsList ->
+                        for (productDetails in productDetailsList) {
+                            response =
+                                productDetails.subscriptionOfferDetails?.get(0)?.pricingPhases?.pricingPhaseList?.get(
+                                    0
+                                )?.formattedPrice
+                            sku = productDetails.name
+                            val desc = productDetails.description
+                            des = "$sku : $desc :  price : $response"
+
+                        }
+
+                    }
+                }
+                runOnUiThread {
+                    Thread.sleep(1000)
+                    Log.d("billing", "onBillingSetupFinished: $des")
+                }
+            }
+        })
+
+        //return SubscriptionPlansModel(sku!!,response!!,productId)
+        return SubscriptionPlansModel(productId, "", "")
+    }*/
+
+
+    private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, Purchases ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && Purchases != null) {
+            for (purchase in Purchases) {
+                handelPurchase(purchase)
+            }
+        } else if (billingResult.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            //Already Subscrcibed
+            isSuccess = true
+            prefs.isAdsFree = true
+        } else if (billingResult.responseCode == BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED) {
+
+        } else {
+            toast(billingResult.debugMessage)
+        }
+    }
+
+    private fun handelPurchase(purchase: Purchase) {
+        val consumeParams = ConsumeParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+        val listener = ConsumeResponseListener { billingResult, s ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+
+            }
+        }
+        billingClient!!.consumeAsync(consumeParams, listener)
+        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+            if (!verifyValidSignature(purchase.originalJson, purchase.signature)) {
+                toast("Error : invalid Purchase")
+                return
+            }
+            if (!purchase.isAcknowledged) {
+                val acknowledgePurchaseParams = AcknowledgePurchaseParams
+                    .newBuilder()
+                    .setPurchaseToken(purchase.purchaseToken)
+                    .build()
+
+                billingClient!!.acknowledgePurchase(
+                    acknowledgePurchaseParams,
+                    acknowledgePurchaseResponseListener
+                )
+                //subscribed
+                isSuccess = true
+                prefs.isAdsFree = true
+            } else {
+                //Already Subcribed
+            }
+        } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
+            //Subscription Pending
+        } else if (purchase.purchaseState == Purchase.PurchaseState.UNSPECIFIED_STATE) {
+            //UNSPECIFIED_STATE
+        }
+    }
+
+    var acknowledgePurchaseResponseListener = AcknowledgePurchaseResponseListener { billingResult ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+            //subscribed
+            isSuccess = true
+            prefs.isAdsFree = true
+        }
+    }
+
+    private fun verifyValidSignature(signedData: String, signature: String): Boolean {
+        return try {
+            val base64Key = LICENSE_KEY
+            val security = Security()
+            security.verifyPurchase(base64Key, signedData, signature)
+        } catch (e: IOException) {
+            false
+        }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (billingClient !== null) {
+            billingClient!!.endConnection()
+        }
+    }
